@@ -1,11 +1,31 @@
 var express = require('express');
 var router = express.Router();
 const Product = require('../models/product');
+const multer = require('multer');
 
+const fileFilter = function(req , file , cb){
+    if(file.mimetype === 'image/jpeg'){
+        cb(null , true)
+    }else{
+        cb(new Error('Please upload jpeg file') ,false)
+    }
+}
+const storage = multer.diskStorage({
+        destination : function(req , file , cb){
+            cb(null , './productImage/')
+    },
+        filename : function(req , file , cb){
+            cb(null , new Date().toDateString()+"--"+ file.originalname )
+    }
+});
+
+// const storage = multer.memoryStorage()
+
+const upload = multer({storage:storage , limits : {fileSize: 1024*1024*5 } , fileFilter : fileFilter });
 
 router.get('/', (req, res, next) => {
     //get All products from db
-    Product.find().select('_id name price description size')
+    Product.find().select('_id name price description size image')
         .then(doc => {
 
             const response = {
@@ -17,6 +37,7 @@ router.get('/', (req, res, next) => {
                         _id: doc._id,
                         description: doc.description,
                         size: doc.size,
+                        image:doc.image,
                         uri: {
                             type: 'GET',
                             urls: 'localhost:3000/products/product/' + doc._id
@@ -39,19 +60,22 @@ router.get('/', (req, res, next) => {
 
 ////add product
 
-router.post('/addproduct', (req, res, next) => {
+router.post('/addproduct', upload.single('myfile') , (req, res, next) => {
 
+    console.log(req.file)
     const product = new Product({
         name: req.body.name,
         price: req.body.price,
         description: req.body.description,
         size: req.body.size,
-        quantity: req.body.quantity
+        quantity: req.body.quantity,
+        image: req.file.path
     });
 
     product.save().then(result => {
         res.status(200).json({
-            message: 'Product Added'
+            message: 'Product Added',
+            product:result
         })
     })
         .catch(error => {

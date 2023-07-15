@@ -34,7 +34,7 @@ mongoose.connect('mongodb://127.0.0.1/ShoppingAPI' , {useNewUrlParser : true , u
 
 app.use(express.urlencoded({extended : true}));
 app.use(express.json());
-
+app.use(express.static(path.join(__dirname,'productImage')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);

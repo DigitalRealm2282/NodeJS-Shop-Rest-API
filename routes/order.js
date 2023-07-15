@@ -92,4 +92,26 @@ router.patch('/updateOrder/:orderID', (req, res, next) => {
 });
 /////////////
 
+////Delete order
+
+router.delete('/:orderID',(req,res,next)=>{
+    Order.findByIdAndDelete({_id : req.params.orderID})
+    .then(result=>{
+        if(result){
+                res.status(200).json({
+                message: "Deleted"
+            });
+        }else{
+                res.status(404).json({
+                message: "Not found"
+            });
+        }
+    })
+    .catch(error =>{
+                res.status(404).json({
+                message: error
+            })
+    })
+})
+
 module.exports = router;
